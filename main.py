@@ -86,7 +86,8 @@ nothing = "images/nothing.png"
 boss = "images/nothing.png"
 boss_l = "images/boss_l.png"
 boss_r = "images/boss_r.png"
-
+grib = "images/grib.png"
+mario = "images/mario1.png"
 # клас для кнопок в меню
 class Button:
     def __init__(self, color, x, y, w, h, text, text_size, text_color):
