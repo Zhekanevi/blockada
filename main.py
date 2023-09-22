@@ -1,5 +1,6 @@
+# імпортуємо бібліотеки
 from pygame import *
-
+# творюємо рівень гри
 level1 = [
     "r                                                                    .",
     "r                                                                    .",
@@ -21,14 +22,14 @@ level1 = [
     "----------------------------------------------------------------------"]
 level1_width = len(level1[0]) * 40
 level1_height = len(level1) * 40
-
+# задаємо розміри вікну
 W = 1280
-H = 720
-
+H = 640
+# загружаємо фото для вікна
 window = display.set_mode((W, H))
 display.set_icon(image.load("images/mana.png"))
 display.set_caption('Blockada')
-
+# трансформуємо фото під розміри екрану
 bg = transform.scale(image.load('images/bgr.png'), (W, H))
 
 
@@ -86,8 +87,8 @@ nothing = "images/nothing.png"
 boss = "images/nothing.png"
 boss_l = "images/boss_l.png"
 boss_r = "images/boss_r.png"
-grib = "images/grib.png"
-mario = "images/mario1.png"
+grib = "images/grib1.png"
+mario = "images/mario2.png"
 # клас для кнопок в меню
 class Button:
     def __init__(self, color, x, y, w, h, text, text_size, text_color):
@@ -145,8 +146,9 @@ def camera_config(camera, target_rect):
     l = max(-(camera.width - W), l)  # Не виходимо за праву межу
     t = max(-(camera.height - H), t)  # Не виходимо за нижню межу
     t = min(0, t)  # Не виходимо за верхню межу
-
     return Rect(l, t, w, h)
+# основний клас з налаштуваннями спрайтів
+camera = Camera(camera_config, level1_width, level1_height)
 class Settings(sprite.Sprite):
     def __init__(self, x, y, w, h, speed, img):
         super().__init__()
@@ -160,37 +162,77 @@ class Settings(sprite.Sprite):
         self.rect.y = y
     def reset(self): 
         window.blit(self.image, (self.rect.x, self.rect.y))
-window.blit(bg, (0, 0))
-x = 0
-y = 0
-
-for r in level1:
-    for c in r:
-        if c == '-':
-            r1 = Settings(x, y, 40, 40, 0, platform)
-            r1.reset()
-        if c == '/':
-            r2 = Settings(x, y-40, 40, 180, 0, stairs)
-            r2.reset()
-        if c =='°':
-            r3 = Settings(x, y, 40, 40, 0, coin_img)
-            r3.reset()
-        if c =='r':
-            r4 = Settings(x, y, 40, 40, 0, nothing)
-            r4.reset()
-        if c =='l':
-            r5 = Settings(x, y, 40, 40, 0, nothing)
-            r5.reset()
-        x += 40
+        # клас для гравця
+class Player(Settings):
+    def update_rl(self):
+        keys = key.get_pressed()
+        if keys[K_a]:
+            self.rect.x -= self.speed
+        if keys[K_d]:
+            self.rect.x += self.speed
 
 
+# оновлюємо екран
+    def update_ud(self):
+        keys = key.get_pressed()
+        if keys[K_w]:
+            self.rect.x -= self.speed
+        if keys[K_s]:
+            self.rect.x += self.speed
+            # стартова позиція
+def start_pos():
+    global hero, items
+    hero = Player(300, 625, 100, 100, 5, mario)
+# списки
+    items = sprite.Group()
+    platforms = []
+    stairs_lst = []
+    coins_lst = []
+    blocks_l = []
+    blocks_r = []
     x = 0
-    y += 40
+    y = 0
+    # перевірка інфи і тд
+    for r in level1:
+        for c in r:
+            if c == '-':
+                r1 = Settings(x, y, 40, 40, 0, platform)
+                platforms.append(r1)
+                items.add(r1)
+            if c == '/':
+                r2 = Settings(x, y-40, 40, 180, 0, stairs)
+                stairs_lst.append(r2)
+                items.add(r2)
+            if c =='°':
+                r3 = Settings(x, y, 40, 40, 0, coin_img)
+                coins_lst.append(r3)
+                items.add(r3)
+            if c =='r':
+                r4 = Settings(x, y, 40, 40, 0, nothing)
+                blocks_r.append(r4)
+                items.add(r4)
+            if c =='l':
+                r5 = Settings(x, y, 40, 40, 0, nothing)
+                blocks_l.append(r5)
+                items.add(r5)
+            x += 40
 
+
+        x = 0
+        y += 40
+    items.add(hero)
+# викликаємо функцію
+start_pos()
+# ігровий клас
 game = True
 while game:
-    time.delay(30)
-    
+    time.delay(10)
+    window.blit(bg, (0, 0))
+    hero.update_rl() 
+    camera.update(hero) 
+    for i in items:
+        window.blit(i.image, camera.apply(i))
+
     for e in event.get():
         if e.type == QUIT: 
             game = False
