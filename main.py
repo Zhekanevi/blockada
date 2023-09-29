@@ -88,7 +88,7 @@ boss = "images/nothing.png"
 boss_l = "images/boss_l.png"
 boss_r = "images/boss_r.png"
 grib = "images/grib1.png"
-mario = "images/mario2.png"
+mario = "images/mario3.png"
 # клас для кнопок в меню
 class Button:
     def __init__(self, color, x, y, w, h, text, text_size, text_color):
@@ -176,13 +176,13 @@ class Player(Settings):
     def update_ud(self):
         keys = key.get_pressed()
         if keys[K_w]:
-            self.rect.x -= self.speed
+            self.rect.y -= self.speed
         if keys[K_s]:
-            self.rect.x += self.speed
+            self.rect.y += self.speed
             # стартова позиція
 def start_pos():
-    global hero, items
-    hero = Player(300, 625, 100, 100, 5, mario)
+    global hero, items, stairs_lst, platforms, coins_lst, blocks_l, blocks_r
+    hero = Player(300, 650, 50, 50, 5, mario)
 # списки
     items = sprite.Group()
     platforms = []
@@ -221,6 +221,28 @@ def start_pos():
         x = 0
         y += 40
     items.add(hero)
+def collides():
+    for stair in stairs_lst:
+        if sprite.collide_rect(hero, stair):
+            hero.update_ud()
+            if hero.rect.y <= (stair.rect.y - 40):
+                hero.rect.y = stair.rect.y - 40
+            if hero.rect.y >= (stair.rect.y + 130):
+                hero.rect.y = stair.rect.y + 130
+    for r in blocks_r:
+        if sprite.collide_rect(hero, r):
+            hero.rect.x = r.rect.x + hero.width
+    for l in blocks_l:
+        if sprite.collide_rect(hero, l):
+            hero.rect.x = r.rect.x - hero.width  
+
+    for c in coins_lst:
+        if sprite.collide(hero, °):
+            hero.append(coins_lst)  # і додаємо монетку у список, але я не пам'ятаю як...
+
+points = 0
+
+
 # викликаємо функцію
 start_pos()
 # ігровий клас
@@ -232,9 +254,11 @@ while game:
     camera.update(hero) 
     for i in items:
         window.blit(i.image, camera.apply(i))
-
     for e in event.get():
         if e.type == QUIT: 
             game = False
-
+    window.blit(transform.scale(image.load(coin_img), (30, 30)), (10 , 10))
+    coin_txt = font2.render(':' + str(points), 1, (255, 255, 255))
+    window.blit(coin_txt, (40, 5))
+    collides()
     display.update()
