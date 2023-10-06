@@ -6,19 +6,19 @@ level1 = [
     "r                                                                    .",
     "r                                                                    .",
     "r                                                                    .",
-    "rr    °  °      l                             r    °  °  °     l     .",
+    "rr    °  °   °   l                            r    °  °  °     l     .",
     "r  ------------                                ---------------       .",
     "rr / l                                       r / l         r / l     .",
     "rr   l                                       r   l         r   l     .",
-    "rr     °  l                       r     °  °     l   r         l     .",
+    "rr   °  °  l                      r     °  °     l   r         l     .",
     "r  ------                           ------------       -------       .",
     "r     r / l                                          r / l           .",
     "r     r   l                                          r   l           .",
-    "r     r       °  °   l                       r   °  °    l           .",
+    "r     r    °   °  °   l                      r   °  °    l           .",
     "r       ------------                           ---------             .",
     "r                r / l                       r / l                   .",
     "r                r   l                       r   l                   .",
-    "r                                                                    .",
+    "r            °            °         °               °                .",
     "----------------------------------------------------------------------"]
 level1_width = len(level1[0]) * 40
 level1_height = len(level1) * 40
@@ -32,7 +32,7 @@ display.set_caption('Blockada')
 # трансформуємо фото під розміри екрану
 bg = transform.scale(image.load('images/bgr.png'), (W, H))
 
-
+clock = time.Clock()
 """ЗВУКИ"""
 mixer.init()
 fire = mixer.Sound('sounds/fire.ogg')
@@ -74,7 +74,7 @@ hero_r = "images/sprite1_r.png"
 enemy_r = "images/cyborg.png"
 enemy_l = "images/cyborg_r.png"
 
-coin_img = "images/coin.png"
+coin_img = "images/grib1.png"
 door_img = "images/door.png"
 key_img = "images/key.png"
 chest_open = "images/cst_open.png"
@@ -87,7 +87,7 @@ nothing = "images/nothing.png"
 boss = "images/nothing.png"
 boss_l = "images/boss_l.png"
 boss_r = "images/boss_r.png"
-grib = "images/grib1.png"
+
 mario = "images/mario3.png"
 # клас для кнопок в меню
 class Button:
@@ -179,12 +179,44 @@ class Player(Settings):
             self.rect.y -= self.speed
         if keys[K_s]:
             self.rect.y += self.speed
-            # стартова позиція
+
+class Enemy(Settings):
+    def __init__(self, x, y, w, h, speed, img, side):
+        super().__init__(x, y, w, h, speed, img)
+        self.side = side
+        
+    def update(self):
+        if self.side == 'right':
+            self.imagec = transform.scale(image.load(enemy_l), (self.width, self.height))
+            self.rect.x += self.speed
+
+    
+        if self.side == 'left':
+            self.image = transform.scale(image.load(enemy_r), (self.width, self.height))
+            self.rect.x -= self.speed
+                    
+
+
+    
+# стартова позиція
 def start_pos():
-    global hero, items, stairs_lst, platforms, coins_lst, blocks_l, blocks_r
-    hero = Player(300, 650, 50, 50, 5, mario)
+    global hero, items, stairs_lst, platforms, coins_lst, blocks_l, blocks_r, enemies, door, key1, enemies
+    hero = Player(300, 650, 50, 50, 50, mario)
+
+    # en1 = Enemy(400, 480, 50, 50, 13, enemy_l, 'left')
+    # en2 = Enemy(500, 480, 50, 50, 13, enemy_l, 'left')
+    # en3 = Enemy(600, 480, 50, 50, 13, enemy_l, 'left')
+    # en4 = Enemy(400, 650, 50, 50, 13, enemy_l, 'left')
+
+    
 # списки
+    # enemies = sprite.Group()
+    # enemies.add(en1)
+    # enemies.add(en2)
+    # enemies.add(en3)
+    # enemies.add(en4)
     items = sprite.Group()
+
     platforms = []
     stairs_lst = []
     coins_lst = []
@@ -221,7 +253,13 @@ def start_pos():
         x = 0
         y += 40
     items.add(hero)
+    # items.add(en1)
+    # items.add(en2)
+    # items.add(en3)
+    # items.add(en4)
+    
 def collides():
+    global points
     for stair in stairs_lst:
         if sprite.collide_rect(hero, stair):
             hero.update_ud()
@@ -232,13 +270,18 @@ def collides():
     for r in blocks_r:
         if sprite.collide_rect(hero, r):
             hero.rect.x = r.rect.x + hero.width
+        # for en in sprite.spritecollide(r, enemies, False):
+        #     en.side = 'right'
     for l in blocks_l:
         if sprite.collide_rect(hero, l):
             hero.rect.x = r.rect.x - hero.width  
-
+        # for en in sprite.spritecollide(l, enemies, False):
+        #     en.side = 'left'
     for c in coins_lst:
-        if sprite.collide(hero, °):
-            hero.append(coins_lst)  # і додаємо монетку у список, але я не пам'ятаю як...
+        if sprite.collide_rect(hero, c):
+            coins_lst.remove(c)
+            items.remove(c)
+            points += 1
 
 points = 0
 
@@ -248,9 +291,10 @@ start_pos()
 # ігровий клас
 game = True
 while game:
-    time.delay(10)
+    
     window.blit(bg, (0, 0))
     hero.update_rl() 
+    # enemies.update()
     camera.update(hero) 
     for i in items:
         window.blit(i.image, camera.apply(i))
@@ -261,4 +305,5 @@ while game:
     coin_txt = font2.render(':' + str(points), 1, (255, 255, 255))
     window.blit(coin_txt, (40, 5))
     collides()
+    clock.tick(60)
     display.update()
