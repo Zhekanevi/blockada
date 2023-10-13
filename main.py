@@ -200,7 +200,7 @@ class Enemy(Settings):
     
 # стартова позиція
 def start_pos():
-    global hero, items, stairs_lst, platforms, coins_lst, blocks_l, blocks_r, enemies, door, key1, enemies
+    global hero, items, stairs_lst, platforms, coins_lst, blocks_l, blocks_r, enemies, door, key1, chest, enemies, key_is
     hero = Player(300, 650, 50, 50, 50, mario)
 
     # en1 = Enemy(400, 480, 50, 50, 13, enemy_l, 'left')
@@ -208,7 +208,9 @@ def start_pos():
     # en3 = Enemy(600, 480, 50, 50, 13, enemy_l, 'left')
     # en4 = Enemy(400, 650, 50, 50, 13, enemy_l, 'left')
 
-    
+    door = Settings(1000, 580, 40, 120, 0, door_img)
+    key1 = Settings(160, 350, 50, 20, 0, key_img)
+    chest = Settings(450, 130, 80, 80, 0, chest_close)
 # списки
     # enemies = sprite.Group()
     # enemies.add(en1)
@@ -249,17 +251,22 @@ def start_pos():
                 items.add(r5)
             x += 40
 
-
         x = 0
         y += 40
+
+    items.add(door)
+    items.add(key1)
+    items.add(chest)    
     items.add(hero)
     # items.add(en1)
     # items.add(en2)
     # items.add(en3)
     # items.add(en4)
     
+key_is = False
 def collides():
-    global points
+    global points, key_is
+    key_pressed = key.get_pressed()
     for stair in stairs_lst:
         if sprite.collide_rect(hero, stair):
             hero.update_ud()
@@ -283,8 +290,23 @@ def collides():
             items.remove(c)
             points += 1
 
-points = 0
+    if sprite.collide_rect(hero, key1):
+        window.blit(e_tap, (500, 50))
+        if key_pressed[K_e]:
+            items.remove(key1)
+            key1.rect.y = -100
+            key_is = True
 
+    if sprite.collide_rect(hero, chest) and key_is == False:
+        window.blit(k_need, (500, 50))
+    if sprite.collide_rect(hero, chest) and key_is == True:
+        window.blit(e_tap, (500, 50))
+        if key_pressed[K_e]:
+            chest.image = transform.scale(image.load(chest_open), (chest.width, chest.height))
+            points += 100
+            keys_is = False
+
+points = 0
 
 # викликаємо функцію
 start_pos()
